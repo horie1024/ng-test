@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <meta charset="utf-8">
+        <title>AngularTodo</title>
+        <script src="http://code.angularjs.org/angular-1.0.1.min.js"></script>
+        <script>
+        
+        var Todo = function(text, done) {
+            this.id = Todo.getNextId();
+            this.text = text;
+            this.done = done || false;
+            this.editing = false;
+        };
+
+        Todo.getNextId = (function () {
+            var _nextId = 0;
+            var _genNextId = function () {
+                _nextId++;
+                return _nextId;
+            }
+            return _genNextId;
+        })();
+
+        var AppCtrl = function ($scope) {
+            
+            $scope.todos = [
+                new Todo("foo", true),
+                new Todo("bar")
+            ];
+
+            $scope.remaining = function () {
+                var count = 0;
+                angular.forEach($scope.todos, function(todo) {
+                    count += todo.done ? 0 : 1;
+                });
+                return count;
+            };
+
+            $scope.archive = function () {
+                var oldTodos = $scope.todos;
+                $scope.todos = [];
+                angular.forEach(oldTodos, function(todo) {
+                    if (!todo.done) {
+                        $scope.todos.push(todo);
+                    }
+                });
+            };
+
+            $scope.addTodo = function () {
+                $scope.todos.push(new Todo($scope.todoText));
+                $scope.todoText = "";
+            };
+
+            $scope.editTodo = function (id) {
+                var todo = findTodoById(id);
+                todo.editing = true;
+            };
+
+            $scope.updateTodo = function (id) {
+                var todo = findTodoById(id);
+                todo.editing = false;
+            };
+
+            $scope.deleteTodo = function (id) {
+                var index = findTodoIndexById(id);
+                $scope.todos.splice(index, 1);
+            };
+
+            var findTodoIndexById = function (id) {
+                var numId = Number(id);
+                for (var i = 0, max = $scope.todos.length; i < max; i++) {
+                    var todo = $scope.todos[i];
+                    console.log($scope.todos[0]);
+                    if (todo.id === numId) {
+                        return i;
+                    }
+                }
+                return null;
+            };
+
+            var findTodoById = function(id) {
+                var index = findTodoIndexById(id);
+                return $scope.todos[index];
+            };
+        };
+        </script>
+        <style type="text/css">
+            .done-true {
+                text-decoration:  line-through;
+                color: grey;
+            }
+
+        </style>
+    </head>
+    <body>
+        <h2>TODO</h2>
+        <div ng-controller="AppCtrl">
+            <span>{{remaining()}} of {{todos.length}} remaining</span>
+            [<a href="" ng-click="archive()">archive</a>]
+            <ul class="unstyled">
+                <li ng-repeat="todo in todos">
+                    <div ng-show="!todo.editing">
+                        <input type="checkbox" ng-model="todo.done">
+                        <span class="done-{{todo.done}}">{{todo.text}}</span>
+                        [<a href="" ng-click="editTodo(todo.id)">edit</a>]
+                        [<a href="" ng-click="deleteTodo(todo.id)">delete</a>]
+                    </div>
+                    <div ng-show="todo.editing">
+                        <input type="text" ng-model="todo.text">
+                        <input type="button" ng-click="updateTodo(todo.id)" value="Finish">
+                    </div>
+                </li>
+            </ul>
+
+            <form name="form" ng-submit="addTodo()">
+                <input type="text" ng-model="todoText" size="30" 
+                    placeholder="add new todo here" required>
+
+                    <input class="btn-primary" type="submit" value="add"
+                        ng-disabled="form.$invalid">
+            </form>
+        </div> 
+    </body>
+</html>
